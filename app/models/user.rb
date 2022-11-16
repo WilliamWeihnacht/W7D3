@@ -18,6 +18,35 @@ class User < ApplicationRecord
     attr_reader :password
 
     
+    #SPIRE
+
+    def self.find_by_credentials(username, password)
+        user = User.find_by(username: username)
+        if user&.is_password?(password)
+            return user 
+        else    
+            return nil 
+        end 
+    end 
+
+    def password=(password)
+        @password = password
+        self.password_digest = BCrypt::Password.create(password)
+    end 
+
+    def is_password?(password)
+
+    end
+
+
+
+
+    
+
+
+
+
+    private 
 
 
 end
