@@ -12,11 +12,10 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  subject(:swag) { User.create!(username: 'Swag', password: 'jimmy') }
+  subject! { User.create!(username: 'Swag', password: 'jimmmy') }
 
   it {should validate_presence_of(:username)}
   it {should validate_presence_of(:password_digest)}
-  it {should validate_presence_of(:session_token)}
 
   it {should validate_uniqueness_of(:username)}
   it {should validate_uniqueness_of(:session_token)}
@@ -25,7 +24,7 @@ RSpec.describe User, type: :model do
 
 
   describe "::find_by_credentials" do 
-    context "with validate credentials" do
+    context "with valid credentials" do
       
       it "returns the user" do 
         bob = User.create!(username: 'Bob', password: 'password')
@@ -48,45 +47,35 @@ RSpec.describe User, type: :model do
 
   describe "password encryption" do 
     it "does not save password to database" do 
-      # User.create!(username:'Swag' , password: 'jimmy')
-      swag = User.find_by(username: 'Swag')
-      expect(swag.password).not_to be('jimmy')  
+      expect(subject.password_digest).not_to be('jimmmy')  
     end 
 
     it "ensuring BCrypt is used on password" do
       expect(BCrypt::Password).to receive(:create) 
-      User.new(username:'Swag', password: 'jimmy')
+      User.new(username:'Swag', password: 'jimmmy')
     end
   end 
 
   describe "is_password?" do 
-    swag = User.find_by(username: 'Swag')
-    
-
     it "should use BCrypt.new to make a BCrypt obj" do 
-      expect(BCrypt::Password).to receive(:new) 
-      swag.is_password?('jimmy')
+      
+      new_user = User.create(username: "Darren", password: "123456")
+      expect(BCrypt::Password).to receive(:new).and_return(BCrypt::Password.new(new_user.password_digest))
+      #debugger
+      new_user.is_password?('123456')
     end 
-
-    it "calls BCrypt.is_password" do
-      expect(BCrypt::Password).to receive(:is_password?) 
-      swag.is_password?('jimmy')
-    end
   end 
 
   describe "reset_session_token & ensure's session token" do 
-    swag = User.find_by(username: 'Swag')
-    
-  
     it "regenerates a new session token" do 
-      old_session_token = swag.session_token
-      new_session_token = swag.reset_session_token
+      old_session_token = subject.session_token
+      new_session_token = subject.reset_session_token
       expect(old_session_token).not_to eq(new_session_token)  
     end 
 
     it "ensures session token is generated if missing" do
-      old_session_token = swag.session_token
-      new_user = User.create!(username:'jimmy' , password: 'mannn')
+      old_session_token = subject.session_token
+      new_user = User.create!(username:'jimmy' , password: 'mannnn')
       expect(new_user.session_token).not_to be_nil
     end
   end 
